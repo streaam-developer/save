@@ -1,19 +1,15 @@
 import os
 import asyncio
 from pyrogram import Client, filters, enums
-from pyrogram.errors import (
-    FloodWait, UserIsBlocked, InputUserDeactivated, UserAlreadyParticipant,
-    InviteHashExpired, UsernameNotOccupied
-)
+from pyrogram.errors import UsernameNotOccupied
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 from config import API_ID, API_HASH, ERROR_MESSAGE
 from database.db import db
 
 class BatchManager:
-    # Task queues for each user
-    USER_TASKS = {}
+    USER_TASKS = {}  # Task queue for each user
 
-# Worker function to process tasks
+# Worker to process tasks
 async def worker(client, user_id):
     while True:
         if user_id not in BatchManager.USER_TASKS:
@@ -25,36 +21,49 @@ async def worker(client, user_id):
             await asyncio.sleep(1)
             continue
 
-        # Process task
         task = await queue.get()
-        await handle_task(client, user_id, task)
+        await handle_task(client, task)
 
-# Handles downloading and uploading tasks
-async def handle_task(client, user_id, task):
+# Handle downloading and uploading of messages
+async def handle_task(client, task):
     chat_id, msg_id, link = task
+
     try:
+        # Notify user
         smsg = await client.send_message(chat_id, f"**Processing your request (Message ID: {msg_id})...**")
         
-        # Simulate download and upload progress (replace with actual logic)
-        progress_file = f"{msg_id}_progress.txt"
-        with open(progress_file, "w") as f:
-            f.write("0%")
+        # Extract chat and message IDs
+        if "https://t.me/" in link:
+            parts = link.split("/")
+            if "c" in parts:  # For private groups
+                chat_id = int("-100" + parts[-2])
+                msg_id = int(parts[-1])
+            else:  # For public channels/groups
+                chat_id = parts[-2]
+                msg_id = int(parts[-1])
+        else:
+            await client.send_message(chat_id, "Invalid Telegram link. Please provide a valid one.", reply_to_message_id=msg_id)
+            return
         
-        # Simulate download
-        await asyncio.sleep(3)
-        with open(progress_file, "w") as f:
-            f.write("50% Downloaded")
-        
-        # Simulate upload
-        await asyncio.sleep(3)
-        with open(progress_file, "w") as f:
-            f.write("100% Uploaded")
+        # Download the message content
+        msg = await client.get_messages(chat_id, msg_id)
+        msg_type = get_message_type(msg)
+
+        if msg_type == "Text":
+            await client.send_message(chat_id, msg.text, reply_to_message_id=msg_id)
+        elif msg_type in ["Photo", "Video", "Document"]:
+            file_path = await client.download_media(msg)
+            await client.send_document(chat_id, file_path, caption=msg.caption if msg.caption else "", reply_to_message_id=msg_id)
+            os.remove(file_path)  # Clean up after upload
+        else:
+            await client.send_message(chat_id, "Unsupported message type.", reply_to_message_id=msg_id)
         
         await client.edit_message_text(chat_id, smsg.id, f"**Message ID {msg_id} processed successfully!**")
-        os.remove(progress_file)
 
+    except UsernameNotOccupied:
+        await client.send_message(chat_id, "The username in the link is invalid.", reply_to_message_id=msg_id)
     except Exception as e:
-        await client.send_message(chat_id, f"Error processing message {msg_id}: {e}")
+        await client.send_message(chat_id, f"Error processing message {msg_id}: {e}", reply_to_message_id=msg_id)
 
 # Start command
 @Client.on_message(filters.command(["start"]))
@@ -99,21 +108,21 @@ async def cancel(client: Client, message: Message):
     else:
         await message.reply_text("No ongoing tasks to cancel.")
 
-# Handles text messages (task creation)
+# Handles task creation
 @Client.on_message(filters.text & filters.private)
 async def save(client: Client, message: Message):
     user_id = message.from_user.id
 
-    # Initialize task queue for user
+    # Initialize task queue for the user
     if user_id not in BatchManager.USER_TASKS:
         BatchManager.USER_TASKS[user_id] = asyncio.Queue()
         asyncio.create_task(worker(client, user_id))
 
-    # Add task to the user's queue
+    # Add task to the queue
     await BatchManager.USER_TASKS[user_id].put((message.chat.id, message.id, message.text))
     await message.reply_text("Your task has been added to the queue.")
 
-# Determines the message type for better handling
+# Identify message type
 def get_message_type(msg: Message):
     if msg.document:
         return "Document"
@@ -121,10 +130,6 @@ def get_message_type(msg: Message):
         return "Video"
     elif msg.photo:
         return "Photo"
-    elif msg.audio:
-        return "Audio"
-    elif msg.voice:
-        return "Voice"
     elif msg.text:
         return "Text"
     return None
