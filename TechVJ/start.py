@@ -27,9 +27,9 @@ async def downstatus(client, statusfile, message, chat, msgid):
             txt = downread.read()
         try:
             await client.edit_message_text(chat, message.id, f"**Downloaded:** **{txt}**\n\nCurrent Message Id:- {msgid}")
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
         except:
-            await asyncio.sleep(1)
+            await asyncio.sleep(10)
 
 
 # upload status
@@ -44,9 +44,9 @@ async def upstatus(client, statusfile, message, chat, msgid):
             txt = upread.read()
         try:
             await client.edit_message_text(chat, message.id, f"**Uploaded:** **{txt}**\n\nCurrent Message Id:- {msgid}")
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
         except:
-            await asyncio.sleep(1)
+            await asyncio.sleep(10)
 
 
 # progress writer
@@ -195,7 +195,7 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     if msg.caption:
         caption = msg.caption
     else:
-        tsts = f"Powered By @falconfiles_support Yaani Sonu🤪🤪"
+        tsts = f"Message id:- {msgid}\n\nPowered By @falconfiles_support Yaani Sonu🤪🤪"
         caption = tsts
     if batch_temp.IS_BATCH.get(message.from_user.id): return 
             
