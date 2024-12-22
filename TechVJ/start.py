@@ -178,9 +178,10 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
             if ERROR_MESSAGE == True:
                 await client.send_message(message.chat.id, f"Error: {e}", reply_to_message_id=message.id, parse_mode=enums.ParseMode.HTML)
             return 
-    stats = f"**Downloading** Message id:- {msgid}"
+    stats = f"**Downloading** Message id:- {msgid}\n\nPowered By @falconfiles_support Yaani Sonu🤪🤪"
     smsg = await client.send_message(chat, stats, reply_to_message_id=message.id)
     asyncio.create_task(downstatus(client, f'{message.id}downstatus.txt', smsg, chat))
+    await smsg.delete(20)
     try:
         file = await acc.download_media(msg, progress=progress, progress_args=[message,"down"])
         os.remove(f'{message.id}downstatus.txt')
@@ -194,7 +195,8 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     if msg.caption:
         caption = msg.caption
     else:
-        caption = None
+        tsts = f"Powered By @falconfiles_support Yaani Sonu🤪🤪"
+        caption = tsts
     if batch_temp.IS_BATCH.get(message.from_user.id): return 
             
     if "Document" == msg_type:
