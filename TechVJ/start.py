@@ -27,9 +27,9 @@ async def downstatus(client, statusfile, message, chat, msgid):
             txt = downread.read()
         try:
             await client.edit_message_text(chat, message.id, f"**Downloaded:** **{txt}**\n\nCurrent Message Id:- {msgid}")
-            await asyncio.sleep(5)
-        except:
             await asyncio.sleep(10)
+        except:
+            await asyncio.sleep(5)
 
 
 # upload status
@@ -44,9 +44,9 @@ async def upstatus(client, statusfile, message, chat, msgid):
             txt = upread.read()
         try:
             await client.edit_message_text(chat, message.id, f"**Uploaded:** **{txt}**\n\nCurrent Message Id:- {msgid}")
-            await asyncio.sleep(5)
-        except:
             await asyncio.sleep(10)
+        except:
+            await asyncio.sleep(5)
 
 
 # progress writer
@@ -188,7 +188,7 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     except Exception as e:
         if ERROR_MESSAGE == True:
             await client.send_message(message.chat.id, f"Error: {e}", reply_to_message_id=message.id, parse_mode=enums.ParseMode.HTML) 
-        return await smsg.delete(20)
+        return await smsg.delete()
     if batch_temp.IS_BATCH.get(message.from_user.id): return 
     asyncio.create_task(upstatus(client, f'{message.id}upstatus.txt', smsg, chat, msgid))
 
