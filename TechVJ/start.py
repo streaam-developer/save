@@ -164,6 +164,7 @@ async def save(client: Client, message: Message):
 # handle private
 async def handle_private(client: Client, acc, message: Message, chatid: int, msgid: int):
     msg: Message = await acc.get_messages(chatid, msgid)
+    msgid = msgid
     if msg.empty: return 
     msg_type = get_message_type(msg)
     if not msg_type: return 
@@ -178,7 +179,7 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
                 await client.send_message(message.chat.id, f"Error: {e}", reply_to_message_id=message.id, parse_mode=enums.ParseMode.HTML)
             return 
 
-    smsg = await client.send_message(message.chat.id, '**Downloading**', reply_to_message_id=message.id)
+    smsg = await client.send_message(chat, '**Downloading** Message id:- {msgid}', reply_to_message_id=message.id)
     asyncio.create_task(downstatus(client, f'{message.id}downstatus.txt', smsg, chat))
     try:
         file = await acc.download_media(msg, progress=progress, progress_args=[message,"down"])
