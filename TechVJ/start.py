@@ -181,7 +181,7 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     stats = f"**Downloading** Message id:- {msgid}\n\nPowered By @falconfiles_support Yaani Sonu🤪🤪"
     smsg = await client.send_message(chat, stats, reply_to_message_id=message.id)
     asyncio.create_task(downstatus(client, f'{message.id}downstatus.txt', smsg, chat, msgid))
-     await smsg.delete(20)
+     
     try:
         file = await acc.download_media(msg, progress=progress, progress_args=[message,"down"])
         os.remove(f'{message.id}downstatus.txt')
