@@ -14,8 +14,8 @@ class Bot(Client):
             api_hash=API_HASH,
             bot_token=BOT_TOKEN,
             plugins=dict(root="TechVJ"),
-            workers=1,
-            sleep_threshold=30
+            workers=10,
+            sleep_threshold=20
         )
 
       
