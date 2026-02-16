@@ -2,7 +2,7 @@ import os
 
 # IMPORTANT: Get your API credentials from https://my.telegram.org/apps
 # The values below are PLACEHOLDERS - replace with real values!
-DEST_CHANNEL_ID = -1002889076404
+DEST_CHANNEL_ID = -1003735599360
 
 # Bot token @Botfather
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "7234321564:AAELvfc6WGXEdTap0NwIcSB3o_kxvp9mHPY")
